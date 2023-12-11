@@ -1,0 +1,176 @@
+unit uVendasItensProdutoDAO;
+
+interface
+
+uses
+  FireDAC.Comp.Client, uConexao, uVendasItensProdutoModel, System.SysUtils, FireDAC.DApt,
+  FireDac.Stan.Param;
+
+type
+  TVendasItensProdutoDAO = class
+  private
+    FConexao: TConexao;
+  public
+    constructor Create;
+
+    function Incluir(AVendasItensProdutoModel: TVendasItensProdutoModel): Boolean;
+    function Alterar(AVendasItensProdutoModel: TVendasItensProdutoModel): Boolean;
+    function Excluir(AVendasItensProdutoModel: TVendasItensProdutoModel): Boolean;
+    function Obter: TFDQuery;
+    function ObterItem(ACodigo : Integer) : TFDQuery;
+  end;
+
+implementation
+
+uses uSistemaControl, uEnumerado;
+
+{ TVendasItensProdutoDAO }
+
+function TVendasItensProdutoDAO.Alterar(
+  AVendasItensProdutoModel: TVendasItensProdutoModel): Boolean;
+var
+  VQry: TFDQuery;
+  Transact : TFDConnection;
+begin
+  VQry := FConexao.CriarQuery();
+
+  Transact := uConexao.TConexao.Create.GetConn;
+
+  Transact.StartTransaction();
+  Try
+    try
+      VQry.Close;
+      VQry.SQL.Clear;
+      VQry.SQL.Add(' UPDATE PEDIDO_PRODUTO ');
+      VQry.SQL.Add('    SET QUANTIDADE     = :PQUANTIDADE, ');
+      VQry.SQL.Add('        VL_UNITARIO    = :PVL_UNITARIO, ');
+      VQry.SQL.Add('        VL_TOTAL       = :PVL_TOTAL ');
+
+      VQry.SQL.Add('  WHERE CODIGO_PEDPRO  = :PCODIGO_PEDPRO ');
+      VQry.Params.ParamByName('PQUANTIDADE').AsInteger     := AVendasItensProdutoModel.Quantidade;
+      VQry.Params.ParamByName('PVL_UNITARIO').Asfloat      := AVendasItensProdutoModel.Vl_Unitario;
+      VQry.Params.ParamByName('PVL_TOTAL').Asfloat         := AVendasItensProdutoModel.Vl_Total;
+      VQry.Params.ParamByName('PCODIGO_PEDPRO').Asfloat    := AVendasItensProdutoModel.Codigo;
+      VQry.ExecSQL;
+
+      Transact.Commit;
+      Result := True;
+    finally
+      VQry.Free;
+    end;
+  except
+    Transact.Rollback;
+    raise Exception.Create('Erro ao Atualizar Registro!');
+  End;
+
+end;
+
+constructor TVendasItensProdutoDAO.Create;
+begin
+  FConexao := TSistemaControl.GetInstance().Conexao;
+end;
+
+function TVendasItensProdutoDAO.Excluir(
+  AVendasItensProdutoModel: TVendasItensProdutoModel): Boolean;
+var
+  VQry: TFDQuery;
+  Transact : TFDConnection;
+begin
+  VQry := FConexao.CriarQuery();
+
+  Transact := uConexao.TConexao.Create.GetConn;
+
+  Transact.StartTransaction();
+  try
+    try
+      VQry.Close;
+      VQry.SQL.Clear;
+      VQry.SQL.Add(' DELETE FROM PEDIDO_PRODUTO ');
+      if AVendasItensProdutoModel.Tipo = tacItem then
+      begin
+        VQry.SQL.Add('  WHERE CODIGO_PEDPRO = :PCODIGO_PEDPRO ');
+        VQry.Params.ParamByName('PCODIGO_PEDPRO').AsInteger := AVendasItensProdutoModel.Codigo;
+      end
+      else if AVendasItensProdutoModel.Tipo = tacProd then
+      begin
+        VQry.SQL.Add('  WHERE NUM_PEDIDO    = :PNUM_PEDIDO ');
+        VQry.Params.ParamByName('PNUM_PEDIDO').AsInteger := AVendasItensProdutoModel.Num_Pedido;
+      end;
+
+      VQry.ExecSQL;
+      Transact.Commit;
+
+      Result := True;
+    finally
+      VQry.Free;
+    end;
+  except
+    Transact.Rollback;
+    raise Exception.Create('Erro ao Deletar Registro!');
+  end;
+end;
+
+function TVendasItensProdutoDAO.Incluir(
+  AVendasItensProdutoModel: TVendasItensProdutoModel): Boolean;
+var
+  VQry: TFDQuery;
+  Transact : TFDConnection;
+begin
+  VQry := FConexao.CriarQuery();
+  Transact := uConexao.TConexao.Create.GetConn;
+
+  Transact.StartTransaction();
+  Try
+    try
+      VQry.Close;
+      VQry.SQL.Clear;
+      VQry.SQL.Add(' INSERT INTO PEDIDO_PRODUTO (NUM_PEDIDO, CODIGO_PRODUTO, QUANTIDADE, VL_UNITARIO, VL_TOTAL)');
+      VQry.SQL.Add('                   VALUES (:PNUM_PEDIDO, :PCODIGO_PRODUTO, :PQUANTIDADE, :PVL_UNITARIO, :PVL_TOTAL) ');
+      VQry.Params.ParamByName('PNUM_PEDIDO').AsInteger     := AVendasItensProdutoModel.Num_Pedido;
+      VQry.Params.ParamByName('PCODIGO_PRODUTO').AsInteger := AVendasItensProdutoModel.Codigo_Produto;
+      VQry.Params.ParamByName('PQUANTIDADE').AsInteger     := AVendasItensProdutoModel.Quantidade;
+      VQry.Params.ParamByName('PVL_UNITARIO').AsFloat      := AVendasItensProdutoModel.Vl_Unitario;
+      VQry.Params.ParamByName('PVL_TOTAL').AsFloat         := AVendasItensProdutoModel.Vl_Total;
+      VQry.ExecSQL;
+
+      Transact.Commit;
+      Result := True;
+    finally
+      VQry.Free;
+    end;
+  except
+    Transact.Rollback;
+    raise Exception.Create('Erro ao Inserir Pedido!');
+  End;
+end;
+
+function TVendasItensProdutoDAO.Obter: TFDQuery;
+var
+  VQry: TFDQuery;
+begin
+  VQry := FConexao.CriarQuery();
+
+  VQry.Open('SELECT * FROM PEDIDO_PRODUTO ORDER BY 1, 2');
+
+  Result := VQry;
+end;
+
+function TVendasItensProdutoDAO.ObterItem(ACodigo: Integer): TFDQuery;
+var
+  VQry: TFDQuery;
+begin
+  VQry := FConexao.CriarQuery();
+
+  VQry.Close;
+  VQry.SQL.Clear;
+  VQry.SQL.Add(' SELECT pp.CODIGO_PEDPRO, pp.NUM_PEDIDO, pp.CODIGO_PRODUTO, p.DESC_PRO, pp.QUANTIDADE, pp.VL_UNITARIO, pp.VL_TOTAL ');
+  VQry.SQL.Add('   FROM PEDIDO_PRODUTO pp ');
+  VQry.SQL.Add('   JOIN PRODUTOS p ON (p.CODIGO_PRO = pp.CODIGO_PRODUTO) ');
+  VQry.SQL.Add('  WHERE pp.NUM_PEDIDO = :PNUM_PEDIDO ');
+  VQry.Params.ParamByName('PNUM_PEDIDO').AsInteger := ACodigo;
+  VQry.Open();
+
+  Result := VQry;
+end;
+
+end.

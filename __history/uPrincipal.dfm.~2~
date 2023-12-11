@@ -1,0 +1,34 @@
+object Form1: TForm1
+  Left = 0
+  Top = 0
+  Caption = 'Form1'
+  ClientHeight = 201
+  ClientWidth = 447
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  PixelsPerInch = 96
+  TextHeight = 13
+  object FDConnection1: TFDConnection
+    Params.Strings = (
+      'Database=teste'
+      'User_Name=root'
+      'Password=123456'
+      'DriverID=MySQL')
+    LoginPrompt = False
+    Left = 248
+    Top = 104
+  end
+  object FDPhysMySQLDriverLink1: TFDPhysMySQLDriverLink
+    DriverID = 'MySQL'
+    VendorLib = 
+      'C:\PauloFN\Projetos Desenvolvimento\Delphi\Delphi x MySQL\Projet' +
+      'o 1\libmysql.dll'
+    Left = 128
+    Top = 72
+  end
+end

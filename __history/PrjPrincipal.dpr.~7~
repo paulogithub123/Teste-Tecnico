@@ -1,0 +1,21 @@
+program PrjPrincipal;
+
+uses
+  Vcl.Forms,
+  uPrincipal in 'View\uPrincipal.pas' {frmPrincipal},
+  uConexao in 'Dao\uConexao.pas',
+  uSistemaControl in 'Control\uSistemaControl.pas',
+  uEnumerado in 'Model\uEnumerado.pas',
+  uVendasProdutosView in 'View\uVendasProdutosView.pas' {Form1},
+  uVendasProdutoControl in 'Control\uVendasProdutoControl.pas',
+  uVendasProdutoModel in 'Model\uVendasProdutoModel.pas';
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.MainFormOnTaskbar := True;
+  Application.CreateForm(TfrmPrincipal, frmPrincipal);
+  Application.CreateForm(TForm1, Form1);
+  Application.Run;
+end.

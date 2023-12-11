@@ -1,0 +1,128 @@
+unit uVendasItensProdutoModel;
+
+interface
+
+uses
+  uEnumerado, FireDAC.Comp.Client;
+
+type
+  TVendasItensProdutoModel = class
+  private
+    FAcao: TAcao;
+    FTipo : TTipo;
+    FCodigo: Integer;
+    FCodigo_Produto : Integer;
+    FNum_Pedido : Integer;
+    FQuantidade : Integer;
+    FVl_Unitario : Real;
+    FVl_Total : Real;
+
+    procedure SetAcao(const Value: TAcao);
+    procedure SetTipo(const Value: TTipo);
+    procedure SetCodigo(const Value: Integer);
+    procedure SetCodigo_Produto(const Value: Integer);
+
+    procedure SetNum_Pedido(const Value: Integer);
+    procedure SetQuantidade(const Value: Integer);
+    procedure SetVl_Unitario(const Value: Real);
+    procedure SetVl_Total(const Value: Real);
+  public
+    function Obter: TFDQuery;
+    function Salvar: Boolean;
+    function ObterItem(ACodigo : Integer) : TFDQuery;
+
+    property Acao: TAcao read FAcao write SetAcao;
+    property Codigo: Integer read FCodigo write SetCodigo;
+    property Codigo_Produto: Integer read FCodigo_Produto write SetCodigo_Produto;
+    property Num_Pedido: Integer read FNum_Pedido write SetNum_Pedido;
+    property Quantidade: Integer read FQuantidade write SetQuantidade;
+    property Vl_Unitario: Real read FVl_Unitario write SetVl_Unitario;
+    property Vl_Total: Real read FVl_Total write SetVl_Total;
+
+
+  end;
+
+implementation
+
+uses uVendasItensProdutoDAO;
+
+{ TClienteModel }
+
+function TVendasItensProdutoModel.Obter: TFDQuery;
+var
+  VVendasItensProdutoDao: TVendasItensProdutoDao;
+begin
+  VVendasItensProdutoDao := TVendasItensProdutoDao.Create;
+  try
+    Result := VVendasItensProdutoDao.Obter;
+  finally
+    VVendasItensProdutoDao.Free;
+  end;
+end;
+
+function TVendasItensProdutoModel.ObterItem(ACodigo: Integer): TFDQuery;
+var
+  VVendasItensProdutoDao: TVendasItensProdutoDao;
+begin
+  VVendasItensProdutoDao := TVendasItensProdutoDao.Create;
+  try
+    Result := VVendasItensProdutoDao.ObterItem(ACodigo);
+  finally
+    VVendasItensProdutoDao.Free;
+  end;
+end;
+
+function TVendasItensProdutoModel.Salvar: Boolean;
+var
+  VVendasItensProdutoDao: TVendasItensProdutoDao;
+begin
+  Result := False;
+
+  VVendasItensProdutoDao := TVendasItensProdutoDao.Create;
+  try
+    case FAcao of
+      uEnumerado.tacIncluir: Result := VVendasItensProdutoDao.Incluir(Self);
+      uEnumerado.tacAlterar: Result := VVendasItensProdutoDao.Alterar(Self);
+      uEnumerado.tacExcluir: Result := VVendasItensProdutoDao.Excluir(Self);
+    end;
+  finally
+    VVendasItensProdutoDao.Free;
+  end;
+end;
+
+procedure TVendasItensProdutoModel.SetAcao(const Value: TAcao);
+begin
+  FAcao := Value;
+end;
+
+procedure TVendasItensProdutoModel.SetCodigo(const Value: Integer);
+begin
+  FCodigo := Value;
+end;
+
+procedure TVendasItensProdutoModel.SetCodigo_Produto(const Value: Integer);
+begin
+  FCodigo_Produto := Value;
+end;
+
+procedure TVendasItensProdutoModel.SetNum_Pedido(const Value: Integer);
+begin
+  FNum_Pedido := Value;
+end;
+
+procedure TVendasItensProdutoModel.SetQuantidade(const Value: Integer);
+begin
+  FQuantidade := Value;
+end;
+
+procedure TVendasItensProdutoModel.SetVl_Total(const Value: Real);
+begin
+  FVl_Total := Value;
+end;
+
+procedure TVendasItensProdutoModel.SetVl_Unitario(const Value: Real);
+begin
+  FVl_Unitario := Value;
+end;
+
+end.
