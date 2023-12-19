@@ -106,7 +106,6 @@ type
     procedure BuscaNomeCliente(ACOD_CLI : Integer);
     procedure BuscaDescProduto(ACOD_PROD : Integer);
     procedure SomaVlItens(ANum_Pedido : Integer);
-    Function VerificaRegItens(ANum_Pedido : Integer) : Boolean;
   end;
 
 var
@@ -177,7 +176,7 @@ begin
   begin
     FVendasProdutoControl.Salvar();
 
-    if not (VerificaRegItens(ICod)) then
+    if (FDMemProdutoItens.RecordCount > 0) then
     begin
       FDMemProdutoItens.First;
 
@@ -192,15 +191,6 @@ begin
 
         FDMemProdutoItens.Next;
       end;
-    end
-    else
-    begin
-      FVendasItensProdutoControl.VendasItensProdutoModel.Num_Pedido     := FDMemProdutoItens.Fields[1].AsInteger;
-      FVendasItensProdutoControl.VendasItensProdutoModel.Codigo_Produto := FDMemProdutoItens.Fields[2].AsInteger;
-      FVendasItensProdutoControl.VendasItensProdutoModel.Vl_Unitario    := FDMemProdutoItens.Fields[5].AsFloat;
-      FVendasItensProdutoControl.VendasItensProdutoModel.Quantidade     := FDMemProdutoItens.Fields[4].AsInteger;
-      FVendasItensProdutoControl.VendasItensProdutoModel.Vl_Total       := FDMemProdutoItens.Fields[6].AsFloat;
-      FVendasItensProdutoControl.Salvar();
     end;
 
     ShowMessage('Incluido com sucesso.');
@@ -728,23 +718,6 @@ begin
   FVendasProdutoControl.VendasProdutoModel.ObterPorCodigo(StrToInt(VCodigo));
   CarregarEditsGeral;
 
-end;
-
-function TfrmVendasProdutosView.VerificaRegItens(ANum_Pedido: Integer): Boolean;
-var
-  VQry: TFDQuery;
-begin
-  VQry := TConexao.Create.CriarQuery();
-
-  VQry.Close;
-  VQry.SQL.Clear;
-  VQry.SQL.Add(' SELECT COUNT(1) QTDE ');
-  VQry.SQL.Add('   FROM PEDIDO_PRODUTO pp ');
-  VQry.SQL.Add('  WHERE pp.NUM_PEDIDO = :PNUM_PEDIDO ');
-  VQry.Params.ParamByName('PNUM_PEDIDO').AsInteger := ANum_Pedido;
-  VQry.Open();
-
-  Result := VQry.FieldByName('QTDE').AsInteger > 0;
 end;
 
 end.

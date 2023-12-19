@@ -49,12 +49,8 @@ begin
       VQry.Params.ParamByName('PNUM_PEDIDO').AsInteger := AVendasProdutoModel.NumPedido;
       VQry.ExecSQL;
 
-      Transact.Commit;
-
-      If Not Transact.InTransaction Then
-        Transact.CommitRetaining;
-
       Result := True;
+      Transact.Commit;
     finally
       VQry.Free;
     end;
@@ -172,9 +168,8 @@ begin
 
   VQry.Close;
   VQry.SQL.Clear;
-  VQry.SQL.Add(' SELECT pg.NUM_PEDIDO, pg.DT_EMISSAO, pg.CODIGO_CLIENTE, cl.NOME_CLI, pg.VL_TOTAL ');
+  VQry.SQL.Add(' SELECT pg.NUM_PEDIDO, pg.DT_EMISSAO, pg.CODIGO_CLIENTE, pg.VL_TOTAL ');
   VQry.SQL.Add('   FROM PEDIDO_GERAL pg ');
-  VQry.SQL.Add('   JOIN CLIENTE cl ON (cl.CODIGO_CLI = pg.CODIGO_CLIENTE) ');
   VQry.SQL.Add('  WHERE pg.NUM_PEDIDO = :PNUM_PEDIDO ');
   VQry.Params.ParamByName('PNUM_PEDIDO').AsInteger := ACodigo;
   VQry.Open();

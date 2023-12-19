@@ -54,10 +54,6 @@ begin
       VQry.ExecSQL;
 
       Transact.Commit;
-
-      If Not Transact.InTransaction Then
-        Transact.CommitRetaining;
-
       Result := True;
     finally
       VQry.Free;

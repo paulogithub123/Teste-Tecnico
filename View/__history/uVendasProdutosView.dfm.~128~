@@ -193,7 +193,6 @@ object frmVendasProdutosView: TfrmVendasProdutosView
       TabOrder = 2
       OnEnter = edtCodClienteEnter
       OnExit = edtCodClienteExit
-      OnKeyPress = edtCodClienteKeyPress
     end
     object edtNumPedido: TEdit
       Left = 86
@@ -467,7 +466,6 @@ object frmVendasProdutosView: TfrmVendasProdutosView
         Height = 21
         TabOrder = 0
         OnExit = edtCodProdutoExit
-        OnKeyPress = edtCodProdutoKeyPress
       end
       object mskEditVlUnit: TMaskEdit
         Left = 372
@@ -529,7 +527,6 @@ object frmVendasProdutosView: TfrmVendasProdutosView
         Height = 25
         Hint = 'Insere Item na Grid'
         Caption = 'Incluir Item'
-        Enabled = False
         Glyph.Data = {
           FE040000424DFE04000000000000360000002800000016000000120000000100
           180000000000C8040000C30E0000C30E00000000000000000000F2F2F2F2F2F2
@@ -582,7 +579,6 @@ object frmVendasProdutosView: TfrmVendasProdutosView
         Height = 25
         Hint = 'Cancela Item na Grid'
         Caption = 'Cancelar Item'
-        Enabled = False
         Glyph.Data = {
           FE040000424DFE04000000000000360000002800000016000000120000000100
           180000000000C8040000C30E0000C30E00000000000000000000F2F2F2F2F2F2
@@ -635,7 +631,6 @@ object frmVendasProdutosView: TfrmVendasProdutosView
         Height = 25
         Hint = 'Salva o Item na Tabela Tempor'#225'ria'
         Caption = 'Salvar Item'
-        Enabled = False
         Glyph.Data = {
           FE040000424DFE04000000000000360000002800000016000000120000000100
           180000000000C8040000C30E0000C30E00000000000000000000FFFFFFFFFFFF
@@ -689,7 +684,6 @@ object frmVendasProdutosView: TfrmVendasProdutosView
       Height = 49
       Hint = 'Grava o Pedido e os Itens na Tabela'
       Caption = 'Gravar Pedido'
-      Enabled = False
       Glyph.Data = {
         FE040000424DFE04000000000000360000002800000016000000120000000100
         180000000000C8040000C30E0000C30E00000000000000000000F2E0BED2B770
@@ -757,7 +751,6 @@ object frmVendasProdutosView: TfrmVendasProdutosView
   end
   object dsProdutoItens: TDataSource
     DataSet = FDMemProdutoItens
-    OnStateChange = dsProdutoItensStateChange
     Left = 504
     Top = 342
   end
@@ -775,7 +768,6 @@ object frmVendasProdutosView: TfrmVendasProdutosView
     Top = 286
   end
   object FDMemProdutoItens: TFDMemTable
-    AfterPost = FDMemProdutoItensAfterPost
     FieldDefs = <>
     IndexDefs = <>
     FetchOptions.AssignedValues = [evMode]

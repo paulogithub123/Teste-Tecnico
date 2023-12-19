@@ -467,7 +467,6 @@ object frmVendasProdutosView: TfrmVendasProdutosView
         Height = 21
         TabOrder = 0
         OnExit = edtCodProdutoExit
-        OnKeyPress = edtCodProdutoKeyPress
       end
       object mskEditVlUnit: TMaskEdit
         Left = 372

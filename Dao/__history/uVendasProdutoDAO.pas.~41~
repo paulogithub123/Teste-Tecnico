@@ -49,12 +49,8 @@ begin
       VQry.Params.ParamByName('PNUM_PEDIDO').AsInteger := AVendasProdutoModel.NumPedido;
       VQry.ExecSQL;
 
-      Transact.Commit;
-
-      If Not Transact.InTransaction Then
-        Transact.CommitRetaining;
-
       Result := True;
+      Transact.Commit;
     finally
       VQry.Free;
     end;

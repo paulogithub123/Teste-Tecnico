@@ -193,7 +193,6 @@ object frmVendasProdutosView: TfrmVendasProdutosView
       TabOrder = 2
       OnEnter = edtCodClienteEnter
       OnExit = edtCodClienteExit
-      OnKeyPress = edtCodClienteKeyPress
     end
     object edtNumPedido: TEdit
       Left = 86
@@ -467,7 +466,6 @@ object frmVendasProdutosView: TfrmVendasProdutosView
         Height = 21
         TabOrder = 0
         OnExit = edtCodProdutoExit
-        OnKeyPress = edtCodProdutoKeyPress
       end
       object mskEditVlUnit: TMaskEdit
         Left = 372
@@ -775,7 +773,6 @@ object frmVendasProdutosView: TfrmVendasProdutosView
     Top = 286
   end
   object FDMemProdutoItens: TFDMemTable
-    AfterPost = FDMemProdutoItensAfterPost
     FieldDefs = <>
     IndexDefs = <>
     FetchOptions.AssignedValues = [evMode]

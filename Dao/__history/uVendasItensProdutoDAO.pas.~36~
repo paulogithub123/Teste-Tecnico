@@ -54,10 +54,6 @@ begin
       VQry.ExecSQL;
 
       Transact.Commit;
-
-      If Not Transact.InTransaction Then
-        Transact.CommitRetaining;
-
       Result := True;
     finally
       VQry.Free;
@@ -110,7 +106,7 @@ begin
     end;
   except
     Transact.Rollback;
-    raise Exception.Create('Erro ao Deletar Item do Pedido!');
+    raise Exception.Create('Erro ao Deletar Registro!');
   end;
 end;
 
@@ -144,7 +140,7 @@ begin
     end;
   except
     Transact.Rollback;
-    raise Exception.Create('Erro ao Inserir Item do Pedido!');
+    raise Exception.Create('Erro ao Inserir Pedido!');
   End;
 end;
 

@@ -2,8 +2,8 @@ object frmVendasProdutosView: TfrmVendasProdutosView
   Left = 0
   Top = 0
   Caption = 'Vendas de Produtos'
-  ClientHeight = 494
-  ClientWidth = 732
+  ClientHeight = 493
+  ClientWidth = 728
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -16,12 +16,11 @@ object frmVendasProdutosView: TfrmVendasProdutosView
   object Panel1: TPanel
     Left = 0
     Top = 0
-    Width = 732
+    Width = 728
     Height = 87
     Align = alTop
     BevelInner = bvLowered
     TabOrder = 0
-    ExplicitWidth = 728
     object Label1: TLabel
       Left = 456
       Top = 8
@@ -107,12 +106,11 @@ object frmVendasProdutosView: TfrmVendasProdutosView
   object GroupBox1: TGroupBox
     Left = 0
     Top = 87
-    Width = 732
+    Width = 728
     Height = 164
     Align = alTop
     Caption = 'Pesquisa Itens'
     TabOrder = 1
-    ExplicitWidth = 728
     object Label7: TLabel
       Left = 173
       Top = 24
@@ -193,7 +191,6 @@ object frmVendasProdutosView: TfrmVendasProdutosView
       TabOrder = 2
       OnEnter = edtCodClienteEnter
       OnExit = edtCodClienteExit
-      OnKeyPress = edtCodClienteKeyPress
     end
     object edtNumPedido: TEdit
       Left = 86
@@ -407,13 +404,11 @@ object frmVendasProdutosView: TfrmVendasProdutosView
   object GroupBox2: TGroupBox
     Left = 0
     Top = 251
-    Width = 732
-    Height = 243
+    Width = 728
+    Height = 242
     Align = alClient
     Caption = 'Itens do Pedido'
     TabOrder = 2
-    ExplicitWidth = 728
-    ExplicitHeight = 242
     object dbgItens: TDBGrid
       Left = 2
       Top = 55
@@ -467,7 +462,6 @@ object frmVendasProdutosView: TfrmVendasProdutosView
         Height = 21
         TabOrder = 0
         OnExit = edtCodProdutoExit
-        OnKeyPress = edtCodProdutoKeyPress
       end
       object mskEditVlUnit: TMaskEdit
         Left = 372

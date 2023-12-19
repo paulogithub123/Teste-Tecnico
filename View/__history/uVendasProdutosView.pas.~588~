@@ -734,6 +734,8 @@ function TfrmVendasProdutosView.VerificaRegItens(ANum_Pedido: Integer): Boolean;
 var
   VQry: TFDQuery;
 begin
+  Result := False;
+
   VQry := TConexao.Create.CriarQuery();
 
   VQry.Close;
