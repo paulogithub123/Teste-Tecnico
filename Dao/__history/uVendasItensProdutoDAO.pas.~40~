@@ -30,27 +30,42 @@ function TVendasItensProdutoDAO.Alterar(
   AVendasItensProdutoModel: TVendasItensProdutoModel): Boolean;
 var
   VQry: TFDQuery;
+  Transact : TFDConnection;
 begin
   VQry := FConexao.CriarQuery();
-  try
-    VQry.Close;
-    VQry.SQL.Clear;
-    VQry.SQL.Add(' UPDATE PEDIDO_PRODUTO ');
-    VQry.SQL.Add('    SET QUANTIDADE     = :PQUANTIDADE, ');
-    VQry.SQL.Add('        VL_UNITARIO    = :PVL_UNITARIO, ');
-    VQry.SQL.Add('        VL_TOTAL       = :PVL_TOTAL ');
 
-    VQry.SQL.Add('  WHERE CODIGO_PEDPRO  = :PCODIGO_PEDPRO ');
-    VQry.Params.ParamByName('PQUANTIDADE').AsInteger     := AVendasItensProdutoModel.Quantidade;
-    VQry.Params.ParamByName('PVL_UNITARIO').Asfloat      := AVendasItensProdutoModel.Vl_Unitario;
-    VQry.Params.ParamByName('PVL_TOTAL').Asfloat         := AVendasItensProdutoModel.Vl_Total;
-    VQry.Params.ParamByName('PCODIGO_PEDPRO').Asfloat    := AVendasItensProdutoModel.Codigo;
-    VQry.ExecSQL;
+  Transact := uConexao.TConexao.Create.GetConn;
 
-    Result := True;
-  finally
-    VQry.Free;
-  end;
+  Transact.StartTransaction();
+  Try
+    try
+      VQry.Close;
+      VQry.SQL.Clear;
+      VQry.SQL.Add(' UPDATE PEDIDO_PRODUTO ');
+      VQry.SQL.Add('    SET QUANTIDADE     = :PQUANTIDADE, ');
+      VQry.SQL.Add('        VL_UNITARIO    = :PVL_UNITARIO, ');
+      VQry.SQL.Add('        VL_TOTAL       = :PVL_TOTAL ');
+
+      VQry.SQL.Add('  WHERE CODIGO_PEDPRO  = :PCODIGO_PEDPRO ');
+      VQry.Params.ParamByName('PQUANTIDADE').AsInteger     := AVendasItensProdutoModel.Quantidade;
+      VQry.Params.ParamByName('PVL_UNITARIO').Asfloat      := AVendasItensProdutoModel.Vl_Unitario;
+      VQry.Params.ParamByName('PVL_TOTAL').Asfloat         := AVendasItensProdutoModel.Vl_Total;
+      VQry.Params.ParamByName('PCODIGO_PEDPRO').Asfloat    := AVendasItensProdutoModel.Codigo;
+      VQry.ExecSQL;
+
+      Transact.Commit;
+
+      If Not Transact.InTransaction Then
+        Transact.CommitRetaining;
+
+      Result := True;
+    finally
+      VQry.Free;
+    end;
+  except
+    Transact.Rollback;
+    raise Exception.Create('Erro ao Atualizar Item do Pedido!');
+  End;
 
 end;
 
@@ -63,28 +78,39 @@ function TVendasItensProdutoDAO.Excluir(
   AVendasItensProdutoModel: TVendasItensProdutoModel): Boolean;
 var
   VQry: TFDQuery;
+  Transact : TFDConnection;
 begin
   VQry := FConexao.CriarQuery();
+
+  Transact := uConexao.TConexao.Create.GetConn;
+
+  Transact.StartTransaction();
   try
-    VQry.Close;
-    VQry.SQL.Clear;
-    VQry.SQL.Add(' DELETE FROM PEDIDO_PRODUTO ');
-    if AVendasItensProdutoModel.Tipo = tacItem then
-    begin
-      VQry.SQL.Add('  WHERE CODIGO_PEDPRO = :PCODIGO_PEDPRO ');
-      VQry.Params.ParamByName('PCODIGO_PEDPRO').AsInteger := AVendasItensProdutoModel.Codigo;
-    end
-    else if AVendasItensProdutoModel.Tipo = tacProd then
-    begin
-      VQry.SQL.Add('  WHERE NUM_PEDIDO    = :PNUM_PEDIDO ');
-      VQry.Params.ParamByName('PNUM_PEDIDO').AsInteger := AVendasItensProdutoModel.Num_Pedido;
+    try
+      VQry.Close;
+      VQry.SQL.Clear;
+      VQry.SQL.Add(' DELETE FROM PEDIDO_PRODUTO ');
+      if AVendasItensProdutoModel.Tipo = tacItem then
+      begin
+        VQry.SQL.Add('  WHERE CODIGO_PEDPRO = :PCODIGO_PEDPRO ');
+        VQry.Params.ParamByName('PCODIGO_PEDPRO').AsInteger := AVendasItensProdutoModel.Codigo;
+      end
+      else if AVendasItensProdutoModel.Tipo = tacProd then
+      begin
+        VQry.SQL.Add('  WHERE NUM_PEDIDO    = :PNUM_PEDIDO ');
+        VQry.Params.ParamByName('PNUM_PEDIDO').AsInteger := AVendasItensProdutoModel.Num_Pedido;
+      end;
+
+      VQry.ExecSQL;
+      Transact.Commit;
+
+      Result := True;
+    finally
+      VQry.Free;
     end;
-
-    VQry.ExecSQL;
-
-    Result := True;
-  finally
-    VQry.Free;
+  except
+    Transact.Rollback;
+    raise Exception.Create('Erro ao Deletar Item do Pedido!');
   end;
 end;
 
@@ -118,7 +144,7 @@ begin
     end;
   except
     Transact.Rollback;
-    raise Exception.Create('Erro ao Inserir Pedido!');
+    raise Exception.Create('Erro ao Inserir Item do Pedido!');
   End;
 end;
 

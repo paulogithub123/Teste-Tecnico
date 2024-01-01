@@ -28,7 +28,8 @@
     <Transaction>2023/12/06 13:54:45.000.618,C:\PauloFN\Projetos Desenvolvimento\Delphi\Delphi x MySQL\Projeto 1\Model\uVendasItensProdutoModel.pas=C:\PauloFN\Projetos Desenvolvimento\Delphi\Delphi x MySQL\Projeto 1\Unit1.pas</Transaction>
     <Transaction>2023/12/06 14:11:15.000.098,=C:\PauloFN\Projetos Desenvolvimento\Delphi\Delphi x MySQL\Projeto 1\Unit1.pas</Transaction>
     <Transaction>2023/12/06 14:11:34.000.095,C:\PauloFN\Projetos Desenvolvimento\Delphi\Delphi x MySQL\Projeto 1\Dao\uVendasItensProdutoDAO.pas=C:\PauloFN\Projetos Desenvolvimento\Delphi\Delphi x MySQL\Projeto 1\Unit1.pas</Transaction>
-  </Transactions>  <ProjectSortOrder AutoSort="0" SortType="0">
+  </Transactions>
+	<ProjectSortOrder AutoSort="0" SortType="0">
     <File Path="Control"/>
     <File Path="Control\uSistemaControl.pas"/>
     <File Path="Control\uVendasItensProdutoControl.pas"/>

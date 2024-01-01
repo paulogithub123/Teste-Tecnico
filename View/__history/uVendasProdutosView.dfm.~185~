@@ -207,7 +207,6 @@ object frmVendasProdutosView: TfrmVendasProdutosView
         Height = 49
         Hint = 'Salva Pedido na Tabela Tempor'#225'ria'
         Caption = 'Confirmar'
-        Enabled = False
         Glyph.Data = {
           FE040000424DFE04000000000000360000002800000016000000120000000100
           180000000000C8040000C30E0000C30E00000000000000000000FFFFFFFFFFFF

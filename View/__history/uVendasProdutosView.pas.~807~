@@ -8,12 +8,14 @@ uses
   FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Param,
   FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf, FireDAC.DApt.Intf,
   FireDAC.Comp.DataSet, FireDAC.Comp.Client, Vcl.Grids, Vcl.DBGrids, Vcl.Buttons,
-  uVendasProdutoControl, uVendasItensProdutoControl, Vcl.ToolWin, Vcl.ComCtrls, Vcl.Mask;
+  uVendasProdutoControl, uVendasItensProdutoControl, Vcl.ToolWin, Vcl.ComCtrls, Vcl.Mask,
+  FireDAC.Phys.MySQLWrapper;
 
 type
   TfrmVendasProdutosView = class(TForm)
     Panel1: TPanel;
-    Label1: TLabel;
+    Label1:
+     TLabel;
     Label2: TLabel;
     Label3: TLabel;
     lblQtdItens: TLabel;
@@ -23,70 +25,55 @@ type
     Label7: TLabel;
     Label8: TLabel;
     edtCodCliente: TEdit;
-    GroupBox2: TGroupBox;
-    dbgItens: TDBGrid;
     dsProdutoItens: TDataSource;
     FDMemProdutoGeral: TFDMemTable;
-    spdbtnPesquisar: TSpeedButton;
     FDMemProdutoItens: TFDMemTable;
     Label9: TLabel;
     edtNumPedido: TEdit;
     edtDtEmissao: TMaskEdit;
-    Panel2: TPanel;
-    Panel3: TPanel;
-    btnIncluiItem: TBitBtn;
-    btnCancelarItem: TBitBtn;
+    dsProdutoGeral: TDataSource;
+    edtNmCliente: TEdit;
+    Panel4: TPanel;
+    btnSalvarPedido: TBitBtn;
     Label10: TLabel;
     edtCodProduto: TEdit;
-    Label11: TLabel;
-    mskEditVlUnit: TMaskEdit;
+    edtNmProduto: TEdit;
     Label12: TLabel;
     edtQtde: TEdit;
+    Label11: TLabel;
+    mskEditVlUnit: TMaskEdit;
     btnCalcular: TBitBtn;
     mskEdtVlTotal: TMaskEdit;
-    DBGrid1: TDBGrid;
-    dsProdutoGeral: TDataSource;
+    dbgItens: TDBGrid;
     btnGravaPedido: TBitBtn;
-    btnSalvarItem: TBitBtn;
-    edtNmCliente: TEdit;
-    edtNmProduto: TEdit;
+    btnPesquisar: TBitBtn;
+    btnIncluir: TBitBtn;
     StatusBar1: TStatusBar;
-    Panel4: TPanel;
-    btnIncluiProd: TBitBtn;
-    btnSalvarPedido: TBitBtn;
-    btnCancelaProd: TBitBtn;
-    procedure btnIncluiProdClick(Sender: TObject);
+    btnCancelar: TBitBtn;
+    Panel2: TPanel;
+    btnExcluir: TBitBtn;
     procedure FormShow(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure btnIncluiItemClick(Sender: TObject);
     procedure btnCalcularClick(Sender: TObject);
-    procedure btnCancelarItemClick(Sender: TObject);
     procedure btnSalvarPedidoClick(Sender: TObject);
-    procedure btnSalvarItemClick(Sender: TObject);
     procedure btnGravaPedidoClick(Sender: TObject);
-    procedure DBGrid1CellClick(Column: TColumn);
     procedure FDMemProdutoGeralAfterScroll(DataSet: TDataSet);
     procedure dbgItensColEnter(Sender: TObject);
     procedure dbgItensKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
-    procedure DBGrid1KeyDown(Sender: TObject; var Key: Word;
-      Shift: TShiftState);
-    procedure DBGrid1KeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure btnCancelaProdClick(Sender: TObject);
     procedure edtCodClienteEnter(Sender: TObject);
     procedure edtCodClienteExit(Sender: TObject);
     procedure dbgItensKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure dbgItensCellClick(Column: TColumn);
     procedure edtCodProdutoExit(Sender: TObject);
-    procedure spdbtnPesquisarClick(Sender: TObject);
     procedure mskEditVlUnitKeyPress(Sender: TObject; var Key: Char);
     procedure edtQtdeKeyPress(Sender: TObject; var Key: Char);
-    procedure dsProdutoGeralStateChange(Sender: TObject);
-    procedure FDMemProdutoGeralAfterPost(DataSet: TDataSet);
-    procedure dsProdutoItensStateChange(Sender: TObject);
-    procedure FDMemProdutoItensAfterPost(DataSet: TDataSet);
     procedure edtCodClienteKeyPress(Sender: TObject; var Key: Char);
     procedure edtCodProdutoKeyPress(Sender: TObject; var Key: Char);
+    procedure btnPesquisarClick(Sender: TObject);
+    procedure btnIncluirClick(Sender: TObject);
+    procedure btnCancelarClick(Sender: TObject);
+    procedure btnExcluirClick(Sender: TObject);
   private
     { Private declarations }
     FVendasProdutoControl: TVendasProdutoControl;
@@ -103,9 +90,12 @@ type
     procedure LimpaEditsPItens;
   public
     { Public declarations }
+    iCodSeq : Integer;
+    VCodExcluir : String;
     procedure BuscaNomeCliente(ACOD_CLI : Integer);
     procedure BuscaDescProduto(ACOD_PROD : Integer);
     procedure SomaVlItens(ANum_Pedido : Integer);
+    Function VerificaRegItens(ANum_Pedido : Integer) : Boolean;
   end;
 
 var
@@ -117,12 +107,53 @@ implementation
 
 uses uEnumerado, uConexao, System.UITypes, System.SysUtils;
 
+procedure TfrmVendasProdutosView.btnIncluirClick(Sender: TObject);
+begin
+  FVendasProdutoControl.VendasProdutoModel.Acao           := tacIncluir;
+  FVendasItensProdutoControl.VendasItensProdutoModel.Acao := tacIncluir;
+
+  btnGravaPedido.Enabled := FVendasItensProdutoControl.VendasItensProdutoModel.Acao = tacIncluir;
+  btnCancelar.Enabled    := FVendasItensProdutoControl.VendasItensProdutoModel.Acao = tacIncluir;
+  btnExcluir.Enabled     := FVendasItensProdutoControl.VendasItensProdutoModel.Acao = tacIndefinido;
+
+  LimpaEditsPGeral;
+  LimpaEditsPItens;
+
+  if (FDMemProdutoGeral.Active) then
+    FDMemProdutoGeral.EmptyDataSet;
+
+  if (FDMemProdutoItens.Active) then
+    FDMemProdutoItens.EmptyDataSet;
+
+  HabilitaEditsPGeral;
+  HabilitaEditsPItens;
+
+  edtCodCliente.Enabled := True;
+  edtCodCliente.SetFocus;
+
+  edtNumPedido.Text     := IntToStr(FVendasProdutoControl.VendasProdutoModel.GerarCodigo(1));
+  edtDtEmissao.Text     := DateTimeToStr(Now);
+  lblTotalItens.Caption := '0,00';
+end;
+
+procedure TfrmVendasProdutosView.btnExcluirClick(Sender: TObject);
+begin
+  FVendasProdutoControl.VendasProdutoModel.Acao := tacExcluir;
+  FVendasItensProdutoControl.VendasItensProdutoModel.Acao := tacExcluir;
+
+  VCodExcluir := InputBox('Pesquisar', 'Digite o Número do Pedido a ser Excluído', EmptyStr);
+
+  FVendasProdutoControl.VendasProdutoModel.Tipo := tacProd;
+  FVendasItensProdutoControl.VendasItensProdutoModel.Tipo := tacNenhum;
+  btnGravaPedido.Click;
+end;
+
 procedure TfrmVendasProdutosView.btnCalcularClick(Sender: TObject);
 var fQtd, fVlUnit : Real;
 begin
-  if (FVendasItensProdutoControl.VendasItensProdutoModel.Acao = tacIncluir) then
+  if (FVendasItensProdutoControl.VendasItensProdutoModel.Acao IN [tacIncluir, tacAlterar]) then
   begin
-    if (mskEditVlUnit.Text <> EmptyStr) or (edtQtde.Text <> EmptyStr) then
+    if (mskEditVlUnit.Text <> EmptyStr) and (edtQtde.Text <> EmptyStr) then
     begin
       fQtd    := StrToFloat(edtQtde.Text);
       fVlUnit := StrToFloat(mskEditVlUnit.Text);
@@ -133,50 +164,46 @@ begin
       ShowMessage('Informe a Qtde e/ou o Valor Unitário.');
       mskEditVlUnit.SetFocus;
     end;
-  end
-  else
-  begin
-    FDMemProdutoItens.Edit;
-    FDMemProdutoItens.Fields[6].AsFloat := FDMemProdutoItens.Fields[4].AsFloat * FDMemProdutoItens.Fields[5].AsFloat;
-    FDMemProdutoItens.Post;
   end;
 end;
 
-procedure TfrmVendasProdutosView.btnCancelaProdClick(Sender: TObject);
+procedure TfrmVendasProdutosView.btnCancelarClick(Sender: TObject);
 begin
-  FVendasProdutoControl.VendasProdutoModel.Acao := tacIndefinido;
-
-  HabilitaEditsPGeral;
-
-  LimpaEditsPGeral;
-
-  FDMemProdutoGeral.Close;
-  FDMemProdutoGeral.Open;
-end;
-
-procedure TfrmVendasProdutosView.btnCancelarItemClick(Sender: TObject);
-begin
+  FVendasProdutoControl.VendasProdutoModel.Acao           := tacIndefinido;
   FVendasItensProdutoControl.VendasItensProdutoModel.Acao := tacIndefinido;
 
-  HabilitaEditsPItens;
-
+  LimpaEditsPGeral;
   LimpaEditsPItens;
 
-  FDMemProdutoItens.Close;
-  FDMemProdutoItens.Open;
+  FDMemProdutoItens.Cancel;
+
+  if (FDMemProdutoGeral.Active) then
+    FDMemProdutoGeral.EmptyDataSet;
+
+  if (FDMemProdutoItens.Active) then
+    FDMemProdutoItens.EmptyDataSet;
+
+  HabilitaEditsPGeral;
+  HabilitaEditsPItens;
+  btnIncluir.Enabled     := True;
+  btnGravaPedido.Enabled := False;
+  btnCancelar.Enabled    := False;
 end;
 
 procedure TfrmVendasProdutosView.btnGravaPedidoClick(Sender: TObject);
 var ICod : Integer;
 begin
-  iCod := FDMemProdutoItens.Fields[1].AsInteger;
+  if (VCodExcluir = '') then
+    iCod := FDMemProdutoItens.Fields[1].AsInteger
+  else
+    iCod := StrToInt(VCodExcluir);
 
   if (FVendasItensProdutoControl.VendasItensProdutoModel.Acao = tacIncluir) or
      (FVendasProdutoControl.VendasProdutoModel.Acao           = tacIncluir) then
   begin
     FVendasProdutoControl.Salvar();
 
-    if (FDMemProdutoItens.RecordCount > 0) then
+    if not (VerificaRegItens(ICod)) then
     begin
       FDMemProdutoItens.First;
 
@@ -191,17 +218,33 @@ begin
 
         FDMemProdutoItens.Next;
       end;
+    end
+    else
+    begin
+      FVendasItensProdutoControl.VendasItensProdutoModel.Num_Pedido     := FDMemProdutoItens.Fields[1].AsInteger;
+      FVendasItensProdutoControl.VendasItensProdutoModel.Codigo_Produto := FDMemProdutoItens.Fields[2].AsInteger;
+      FVendasItensProdutoControl.VendasItensProdutoModel.Vl_Unitario    := FDMemProdutoItens.Fields[5].AsFloat;
+      FVendasItensProdutoControl.VendasItensProdutoModel.Quantidade     := FDMemProdutoItens.Fields[4].AsInteger;
+      FVendasItensProdutoControl.VendasItensProdutoModel.Vl_Total       := FDMemProdutoItens.Fields[6].AsFloat;
+      FVendasItensProdutoControl.Salvar();
     end;
 
     ShowMessage('Incluido com sucesso.');
     FVendasItensProdutoControl.VendasItensProdutoModel.Acao := tacIndefinido;
-
     CarregarProdutoGeralCod(iCod);
   end
   else if (FVendasItensProdutoControl.VendasItensProdutoModel.Acao = tacExcluir) then
   begin
+    CarregarProdutoGeralCod(iCod);
+
     if FVendasItensProdutoControl.VendasItensProdutoModel.Tipo = tacItem then
     begin
+      if VCodExcluir <> '' then
+      begin
+        FDMemProdutoItens.Edit;
+        FDMemProdutoItens.Fields[0].AsInteger := StrToInt(VCodExcluir);
+      end;
+
       FVendasItensProdutoControl.VendasItensProdutoModel.Codigo := FDMemProdutoItens.Fields[0].AsInteger;
       FVendasItensProdutoControl.Salvar();
     end;
@@ -210,62 +253,77 @@ begin
     begin
       FVendasItensProdutoControl.VendasItensProdutoModel.Tipo := tacProd;
 
-      FVendasProdutoControl.VendasProdutoModel.NumPedido            := FDMemProdutoGeral.Fields[0].AsInteger;
-      FVendasItensProdutoControl.VendasItensProdutoModel.Num_Pedido := FDMemProdutoGeral.Fields[0].AsInteger;
+      FVendasProdutoControl.VendasProdutoModel.NumPedido            := iCod;
+      FVendasItensProdutoControl.VendasItensProdutoModel.Num_Pedido := iCod;
 
       FVendasItensProdutoControl.Salvar();
       FVendasProdutoControl.Salvar();
     end;
 
     ShowMessage('Excluído com sucesso.');
+    FVendasProdutoControl.VendasProdutoModel.Acao           := tacIndefinido;
     FVendasItensProdutoControl.VendasItensProdutoModel.Acao := tacIndefinido;
 
-    LimpaEditsPItens;
+    CarregarProdutoGeralCod(iCod);
   end
   else if (FVendasItensProdutoControl.VendasItensProdutoModel.Acao = tacAlterar) then
   begin
-    FVendasItensProdutoControl.VendasItensProdutoModel.Codigo_Produto := FDMemProdutoItens.Fields[2].AsInteger;
-    FVendasItensProdutoControl.VendasItensProdutoModel.Vl_Unitario    := FDMemProdutoItens.Fields[5].AsFloat;
-    FVendasItensProdutoControl.VendasItensProdutoModel.Quantidade     := FDMemProdutoItens.Fields[4].AsInteger;
-    FVendasItensProdutoControl.VendasItensProdutoModel.Vl_Total       := FDMemProdutoItens.Fields[6].AsFloat;
     FVendasItensProdutoControl.Salvar();
 
     ShowMessage('Alterado com sucesso.');
     FVendasItensProdutoControl.VendasItensProdutoModel.Acao := tacIndefinido;
+
+    dbgItens.Options := dbgItens.Options - [dgEditing];
   end;
 
-  SomaVlItens(FDMemProdutoItens.Fields[1].AsInteger);
+  SomaVlItens(iCod);
+  btnIncluir.Enabled     := True;
+  btnCancelar.Enabled    := False;
+  btnGravaPedido.Enabled := False;
+  btnExcluir.Enabled     := True;
 end;
 
-procedure TfrmVendasProdutosView.btnIncluiItemClick(Sender: TObject);
+procedure TfrmVendasProdutosView.btnPesquisarClick(Sender: TObject);
+var VCodigo : String;
 begin
-  FVendasItensProdutoControl.VendasItensProdutoModel.Acao := tacIncluir;
+  VCodigo := InputBox('Pesquisar', 'Digite o Número do Pedido', EmptyStr);
 
-  HabilitaEditsPItens;
-  LimpaEditsPItens;
+  SomaVlItens(StrToInt(VCodigo));
+  CarregarEditsGeral;
+  CarregarEditsItens;
+  CarregarProdutoGeralCod(StrToInt(VCodigo));
 end;
 
-procedure TfrmVendasProdutosView.btnIncluiProdClick(Sender: TObject);
+procedure TfrmVendasProdutosView.btnSalvarPedidoClick(Sender: TObject);
 begin
-  FVendasProdutoControl.VendasProdutoModel.Acao := uEnumerado.tacIncluir;
+  if (FDMemProdutoGeral.RecordCount = 0) then
+  begin
+    FDMemProdutoGeral.Append;
+    FDMemProdutoGeral.Fields[0].AsString   := edtNumPedido.Text;
+    FDMemProdutoGeral.Fields[1].AsString   := edtDtEmissao.Text;
+    FDMemProdutoGeral.Fields[2].AsString   := edtCodCliente.Text;
+    FDMemProdutoGeral.Fields[4].AsString   := '0';
 
-  LimpaEditsPGeral;
-  HabilitaEditsPGeral;
-  edtNumPedido.Text := IntToStr(FVendasProdutoControl.VendasProdutoModel.GerarCodigo(1));
-end;
+    FVendasProdutoControl.VendasProdutoModel.Acao           := tacIncluir;
+    FVendasProdutoControl.VendasProdutoModel.NumPedido      := StrToInt(edtNumPedido.Text);
+    FVendasProdutoControl.VendasProdutoModel.DtEmissao      := StrToDateTime(edtDtEmissao.Text);
+    FVendasProdutoControl.VendasProdutoModel.CodigoCliente  := StrToInt(edtCodCliente.Text);
+    FVendasProdutoControl.VendasProdutoModel.VlTotal        := StrToFloat(mskEdtVlTotal.Text);
+    FDMemProdutoGeral.Post;
+  end;
 
-procedure TfrmVendasProdutosView.btnSalvarItemClick(Sender: TObject);
-begin
+  Inc(iCodSeq);
+
   if (FVendasItensProdutoControl.VendasItensProdutoModel.Acao = tacIncluir)  then
   begin
-    FVendasItensProdutoControl.VendasItensProdutoModel.Num_Pedido   := StrToInt(edtNumPedido.Text);
+    FVendasItensProdutoControl.VendasItensProdutoModel.Num_Pedido     := StrToInt(edtNumPedido.Text);
     FVendasItensProdutoControl.VendasItensProdutoModel.Codigo_Produto := StrToInt(edtCodProduto.Text);
     FVendasItensProdutoControl.VendasItensProdutoModel.Quantidade     := StrToInt(edtQtde.Text);
     FVendasItensProdutoControl.VendasItensProdutoModel.Vl_Unitario    := StrToFloat(mskEditVlUnit.Text);
     FVendasItensProdutoControl.VendasItensProdutoModel.Vl_Total       := StrToFloat(mskEdtVlTotal.Text);
 
     FDMemProdutoItens.Append;
-    FDMemProdutoItens.Fields[0].AsInteger := FDMemProdutoItens.RecordCount+1;
+    FDMemProdutoItens.Fields[0].AsInteger := iCodSeq;
     FDMemProdutoItens.Fields[1].AsString  := edtNumPedido.Text;
     FDMemProdutoItens.Fields[2].AsString  := edtCodProduto.Text;
     FDMemProdutoItens.Fields[4].AsString  := edtQtde.Text;
@@ -279,30 +337,25 @@ begin
     FVendasItensProdutoControl.VendasItensProdutoModel.Codigo_Produto := FDMemProdutoItens.Fields[2].AsInteger;
     FVendasItensProdutoControl.VendasItensProdutoModel.Num_Pedido     := FDMemProdutoItens.Fields[1].AsInteger;
     FVendasItensProdutoControl.VendasItensProdutoModel.Quantidade     := FDMemProdutoItens.Fields[4].AsInteger;
-    FVendasItensProdutoControl.VendasItensProdutoModel.Vl_Unitario    := FDMemProdutoItens.Fields[5].AsInteger;
-    FVendasItensProdutoControl.VendasItensProdutoModel.Vl_Total       := FDMemProdutoItens.Fields[6].AsInteger;
+    FVendasItensProdutoControl.VendasItensProdutoModel.Vl_Unitario    := FDMemProdutoItens.Fields[5].AsFloat;
+    FVendasItensProdutoControl.VendasItensProdutoModel.Vl_Total       := FDMemProdutoItens.Fields[4].AsInteger * FDMemProdutoItens.Fields[5].AsFloat;
   end;
 
   lblQtdItens.Caption   := IntToStr(FDMemProdutoItens.RecordCount);
-end;
 
-procedure TfrmVendasProdutosView.btnSalvarPedidoClick(Sender: TObject);
-begin
-  FDMemProdutoGeral.Append;
-  FDMemProdutoGeral.Fields[0].AsString   := edtNumPedido.Text;
-  FDMemProdutoGeral.Fields[1].AsString   := edtDtEmissao.Text;
-  FDMemProdutoGeral.Fields[2].AsString   := edtCodCliente.Text;
-  FDMemProdutoGeral.Fields[4].AsString   := '0';
+  FVendasProdutoControl.VendasProdutoModel.Acao := tacIndefinido;
+  LimpaEditsPItens;
+  HabilitaEditsPGeral;
 
-  FVendasProdutoControl.VendasProdutoModel.Acao           := tacIncluir;
-  FVendasProdutoControl.VendasProdutoModel.NumPedido      := StrToInt(edtNumPedido.Text);
-  FVendasProdutoControl.VendasProdutoModel.DtEmissao      := StrToDateTime(edtDtEmissao.Text);
-  FVendasProdutoControl.VendasProdutoModel.CodigoCliente  := StrToInt(edtCodCliente.Text);
-  FVendasProdutoControl.VendasProdutoModel.VlTotal        := FDMemProdutoItens.Fields[6].AsInteger;
+  btnIncluir.Enabled    := False;
+  edtCodProduto.Enabled := True;
+  edtCodProduto.SetFocus;
 
-  FDMemProdutoGeral.Post;
-
-  HabilitaEditsPItens;
+  if (FVendasItensProdutoControl.VendasItensProdutoModel.Acao = tacIncluir) then
+  begin
+    FVendasProdutoControl.VendasProdutoModel.Acao := tacIncluir;
+    SomaVlItens(FDMemProdutoItens.Fields[1].AsInteger);
+  end;
 end;
 
 procedure TfrmVendasProdutosView.BuscaDescProduto(ACOD_PROD: Integer);
@@ -371,9 +424,25 @@ begin
     VQryP.Free;
   end;
 
-  if (FDMemProdutoGeral.RecordCount = 0) and
-     (FVendasProdutoControl.VendasProdutoModel.Acao = tacIncluir) then
-    ShowMessage('Não existe(m) Pedidos!');
+  if (FVendasProdutoControl.VendasProdutoModel.Acao = tacIndefinido) then
+  begin
+    if (FDMemProdutoGeral.IsEmpty) then
+    begin
+      FDMemProdutoGeral.EmptyDataSet;
+
+      if (FDMemProdutoItens.Active) then
+        FDMemProdutoItens.EmptyDataSet;
+
+      LimpaEditsPGeral;
+      LimpaEditsPItens;
+    end;
+  end;
+
+  if (FDMemProdutoGeral.RecordCount = 0) and (ANum_Pedido <> 999) and not (FVendasProdutoControl.VendasProdutoModel.Acao in [tacIncluir, tacIndefinido]) then
+  begin
+    ShowMessage('Pedido não encontrado!');
+    Abort;
+  end;
 end;
 
 procedure TfrmVendasProdutosView.CarregarProdutoItens;
@@ -410,15 +479,11 @@ begin
     begin
       FVendasProdutoControl.VendasProdutoModel.Acao           := tacIndefinido;
 
-      btnCalcular.Click();
-      btnSalvarItem.Click();
+      btnSalvarPedido.Click();
       btnGravaPedido.Click();
 
       SomaVlItens(iCod);
       CarregarProdutoGeralCod(iCod);
-
-      btnSalvarItem.Enabled   := False;
-      btnCancelarItem.Enabled := False;
 
       FVendasItensProdutoControl.VendasItensProdutoModel.Acao := tacIndefinido;
     end;
@@ -433,11 +498,9 @@ begin
     if (dbgItens.Columns.Grid.SelectedField.FieldName = 'QUANTIDADE') or
        (dbgItens.Columns.Grid.SelectedField.FieldName = 'VL_UNITARIO')then
     begin
-      btnSalvarItem.Enabled   := True;
-      btnCancelarItem.Enabled := True;
-
       dbgItens.Options := dbgItens.Options + [dgEditing];
       FVendasItensProdutoControl.VendasItensProdutoModel.Acao := tacAlterar;
+      FVendasProdutoControl.VendasProdutoModel.Acao           := tacIndefinido;
     end;
   end;
 
@@ -451,6 +514,8 @@ begin
       FVendasItensProdutoControl.VendasItensProdutoModel.Tipo := tacItem;
       FVendasProdutoControl.VendasProdutoModel.Tipo           := tacNenhum;
       btnGravaPedido.Click();
+
+      SomaVlItens(FVendasProdutoControl.VendasProdutoModel.NumPedido);
     end;
   end;
 end;
@@ -460,67 +525,6 @@ procedure TfrmVendasProdutosView.dbgItensKeyUp(Sender: TObject; var Key: Word;
 begin
   if FDMemProdutoItens.RecordCount > 0 then
     CarregarEditsItens;
-end;
-
-procedure TfrmVendasProdutosView.DBGrid1CellClick(Column: TColumn);
-begin
-  if not (FVendasProdutoControl.VendasProdutoModel.Acao IN [tacIncluir, tacAlterar])  then
-    CarregarEditsGeral;
-end;
-
-procedure TfrmVendasProdutosView.DBGrid1KeyDown(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
-begin
-  if (Key = VK_DELETE) then
-  begin
-    if MessageDlg('Deseja realmente apagar o Item?', mtConfirmation, [mbyes,mbno],0) = mrYes then
-    begin
-      FVendasProdutoControl.VendasProdutoModel.Acao           := tacExcluir;
-      FVendasItensProdutoControl.VendasItensProdutoModel.Acao := tacExcluir;
-
-      FVendasItensProdutoControl.VendasItensProdutoModel.Tipo := tacNenhum;
-      FVendasProdutoControl.VendasProdutoModel.Tipo           := tacProd;
-      btnGravaPedido.Click();
-
-      LimpaEditsPGeral;
-      LimpaEditsPItens;
-
-      CarregarProdutoItens;
-    end;
-  end;
-end;
-
-procedure TfrmVendasProdutosView.DBGrid1KeyUp(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
-begin
-  if not (FVendasProdutoControl.VendasProdutoModel.Acao IN [tacIncluir, tacAlterar])  then
-  begin
-    if FDMemProdutoGeral.RecordCount > 0 then
-      CarregarEditsGeral;
-
-    if FDMemProdutoItens.RecordCount > 0 then
-    begin
-      CarregarProdutoItens;
-      CarregarEditsItens;
-
-      if FDMemProdutoItens.Fields[2].AsInteger > 0 then
-        BuscaDescProduto(FDMemProdutoItens.Fields[2].AsInteger);
-    end;
-  end;
-end;
-
-procedure TfrmVendasProdutosView.dsProdutoGeralStateChange(Sender: TObject);
-begin
-  btnIncluiProd.Enabled   := not (dsProdutoGeral.State in [dsInsert, dsEdit]);
-  btnSalvarPedido.Enabled := dsProdutoGeral.State in [dsInsert, dsEdit];
-  btnCancelaProd.Enabled  := btnSalvarPedido.Enabled;
-end;
-
-procedure TfrmVendasProdutosView.dsProdutoItensStateChange(Sender: TObject);
-begin
-  btnIncluiItem.Enabled   := not (dsProdutoItens.State in [dsInsert, dsEdit]);
-  btnSalvarItem.Enabled   := dsProdutoItens.State in [dsInsert, dsEdit];
-  btnCancelarItem.Enabled := btnSalvarItem.Enabled;
 end;
 
 procedure TfrmVendasProdutosView.edtCodClienteEnter(Sender: TObject);
@@ -571,7 +575,6 @@ begin
   if edtNumPedido.Text <> EmptyStr then
   begin
     BuscaNomeCliente(StrToInt(edtCodCliente.Text));
-    //SomaVlItens(StrToInt(edtNumPedido.Text));
   end;
 end;
 
@@ -589,40 +592,31 @@ begin
   end;
 end;
 
-procedure TfrmVendasProdutosView.FDMemProdutoGeralAfterPost(DataSet: TDataSet);
-begin
-  btnIncluiItem.Enabled   := not (dsProdutoItens.State in [dsInsert, dsEdit]);
-  btnSalvarItem.Enabled   := dsProdutoItens.State in [dsInsert, dsEdit];
-  btnCancelarItem.Enabled := btnSalvarItem.Enabled;
-end;
-
 procedure TfrmVendasProdutosView.FDMemProdutoGeralAfterScroll(
   DataSet: TDataSet);
 begin
   CarregarProdutoItens;
 end;
 
-procedure TfrmVendasProdutosView.FDMemProdutoItensAfterPost(DataSet: TDataSet);
-begin
-  btnGravaPedido.Enabled := FDMemProdutoItens.RecordCount > 0;
-end;
-
 procedure TfrmVendasProdutosView.FormCreate(Sender: TObject);
 begin
+  VCodExcluir := '';
   FVendasProdutoControl := TVendasProdutoControl.Create;
   FVendasItensProdutoControl := TVendasItensProdutoControl.Create;
 end;
 
 procedure TfrmVendasProdutosView.FormShow(Sender: TObject);
 begin
-  FVendasProdutoControl.VendasProdutoModel.Acao := tacIndefinido;
+  iCodSeq := 0;
+
+  FVendasProdutoControl.VendasProdutoModel.Acao           := tacIndefinido;
   FVendasItensProdutoControl.VendasItensProdutoModel.Acao := tacIndefinido;
 
   StatusBar1.Panels[0].text := DateToStr(Date);
   Statusbar1.Panels[1].text := TimeToStr(Time);
   Statusbar1.Panels[2].text := 'TESTE TÉCNICO';
 
-  CarregarProdutoGeralCod(99);
+  CarregarProdutoGeralCod(999);
 end;
 
 procedure TfrmVendasProdutosView.HabilitaEditsPGeral;
@@ -630,12 +624,6 @@ begin
   edtNumPedido.Enabled  := FVendasProdutoControl.VendasProdutoModel.Acao = tacIncluir;
   edtDtEmissao.Enabled  := FVendasProdutoControl.VendasProdutoModel.Acao = tacIncluir;
   edtCodCliente.Enabled := FVendasProdutoControl.VendasProdutoModel.Acao = tacIncluir;
-
-  if (FVendasProdutoControl.VendasProdutoModel.Acao = tacIncluir) then
-    edtDtEmissao.SetFocus;
-
-  btnSalvarPedido.Enabled := FVendasProdutoControl.VendasProdutoModel.Acao = tacIncluir;
-  btnCancelaProd.Enabled  := FVendasProdutoControl.VendasProdutoModel.Acao = tacIncluir;
 end;
 
 procedure TfrmVendasProdutosView.HabilitaEditsPItens;
@@ -644,12 +632,6 @@ begin
   mskEditVlUnit.Enabled   := FVendasItensProdutoControl.VendasItensProdutoModel.Acao = tacIncluir;
   edtQtde.Enabled         := FVendasItensProdutoControl.VendasItensProdutoModel.Acao = tacIncluir;
   mskEdtVlTotal.Enabled   := FVendasItensProdutoControl.VendasItensProdutoModel.Acao = tacIncluir;
-
-  btnSalvarItem.Enabled   := (FVendasItensProdutoControl.VendasItensProdutoModel.Acao = tacIncluir);
-  btnCancelarItem.Enabled := (FVendasItensProdutoControl.VendasItensProdutoModel.Acao = tacIncluir);
-
-  if FVendasItensProdutoControl.VendasItensProdutoModel.Acao = tacIncluir then
-    edtCodProduto.SetFocus;
 end;
 
 procedure TfrmVendasProdutosView.LimpaEditsPGeral;
@@ -678,8 +660,10 @@ end;
 
 procedure TfrmVendasProdutosView.SomaVlItens(ANum_Pedido: Integer);
 var
-  VQry: TFDQuery;
+  VQry  : TFDQuery;
+  fSoma : Real;
 begin
+  fSoma := 0;
   VQry := TConexao.Create.CriarQuery();
 
   VQry.Close;
@@ -690,7 +674,7 @@ begin
   VQry.Params.ParamByName('PNUM_PEDIDO').AsInteger := ANum_Pedido;
   VQry.Open();
 
-  if VQry.RecordCount > 0 then
+  if VQry.FieldByName('QTDE').AsInteger > 0 then
   begin
     lblTotalItens.Caption := formatfloat('#,##0.00', VQry.FieldByName('TOTAL').AsFloat);
     lblQtdItens.Caption   := FloatToStr(VQry.FieldByName('QTDE').AsFloat);
@@ -703,21 +687,42 @@ begin
   end
   else
   begin
-    lblTotalItens.Caption := '0,00';
-    lblQtdItens.Caption   := '0';
+    if (FDMemProdutoItens.RecordCount > 0) then
+    begin
+      FDMemProdutoItens.First;
+
+      while not (FDMemProdutoItens.Eof) do
+      begin
+        fSoma := fSoma + FDMemProdutoItens.Fields[4].AsInteger * FDMemProdutoItens.Fields[5].AsFloat;
+
+        lblTotalItens.Caption := formatfloat('#,##0.00', fSoma);
+
+        FDMemProdutoItens.Next;
+      end;
+    end
+    else
+    begin
+      lblTotalItens.Caption := formatfloat('#,##0.00', fSoma);
+      lblQtdItens.Caption   := '0';
+    end;
   end;
 end;
 
-procedure TfrmVendasProdutosView.spdbtnPesquisarClick(Sender: TObject);
-var VCodigo : String;
+function TfrmVendasProdutosView.VerificaRegItens(ANum_Pedido: Integer): Boolean;
+var
+  VQry: TFDQuery;
 begin
-  VCodigo := InputBox('Pesquisar', 'Digite o Número do Pedido', EmptyStr);
+  VQry := TConexao.Create.CriarQuery();
 
-  SomaVlItens(StrToInt(VCodigo));
-  CarregarProdutoGeralCod(StrToInt(VCodigo));
-  FVendasProdutoControl.VendasProdutoModel.ObterPorCodigo(StrToInt(VCodigo));
-  CarregarEditsGeral;
+  VQry.Close;
+  VQry.SQL.Clear;
+  VQry.SQL.Add(' SELECT COUNT(1) QTDE ');
+  VQry.SQL.Add('   FROM PEDIDO_PRODUTO pp ');
+  VQry.SQL.Add('  WHERE pp.NUM_PEDIDO = :PNUM_PEDIDO ');
+  VQry.Params.ParamByName('PNUM_PEDIDO').AsInteger := ANum_Pedido;
+  VQry.Open();
 
+  Result := VQry.FieldByName('QTDE').AsInteger > 0;
 end;
 
 end.
